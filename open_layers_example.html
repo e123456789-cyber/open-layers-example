@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>OpenLayers Basic Map</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.2.0/ol.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@6.15.1/ol.css">
   <style>
     html, body, #map {
       margin: 0;
@@ -16,57 +16,42 @@
 <body>
   <div id="map"></div>
 
-  <script type="module">
-    import 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/ol.css';
-    import Map from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/Map.js';
-    import View from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/View.js';
-    import TileLayer from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/layer/Tile.js';
-    import OSM from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/source/OSM.js';
-    import Feature from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/Feature.js';
-    import Point from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/geom/Point.js';
-    import VectorLayer from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/layer/Vector.js';
-    import VectorSource from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/source/Vector.js';
-    import Style from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/style/Style.js';
-    import Icon from 'https://cdn.jsdelivr.net/npm/ol@v8.2.0/style/Icon.js';
-
-    // Coordinates [longitude, latitude] in EPSG:3857 projection
-    const centerCoords = [0, 0]; // Greenwich, change to your desired location
-
-    // Map view setup
-    const view = new View({
-      center: ol.proj.fromLonLat([2.2945, 48.8584]), // Eiffel Tower (Paris)
-      zoom: 15
+  <script src="https://cdn.jsdelivr.net/npm/ol@6.15.1/dist/ol.js"></script>
+  <script>
+    const map = new ol.Map({
+      target: 'map',
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        })
+      ],
+      view: new ol.View({
+        center: ol.proj.fromLonLat([2.2945, 48.8584]), // Eiffel Tower
+        zoom: 15
+      })
     });
 
-    // Base layer
-    const baseLayer = new TileLayer({
-      source: new OSM()
+    const marker = new ol.Feature({
+      geometry: new ol.geom.Point(ol.proj.fromLonLat([2.2945, 48.8584]))
     });
 
-    // Marker
-    const marker = new Feature({
-      geometry: new Point(ol.proj.fromLonLat([2.2945, 48.8584]))
-    });
-
-    marker.setStyle(new Style({
-      image: new Icon({
+    marker.setStyle(new ol.style.Style({
+      image: new ol.style.Icon({
+        anchor: [0.5, 1],
         src: 'https://openlayers.org/en/v4.6.5/examples/data/icon.png',
         scale: 0.7
       })
     }));
 
-    const vectorLayer = new VectorLayer({
-      source: new VectorSource({
-        features: [marker]
-      })
+    const vectorSource = new ol.source.Vector({
+      features: [marker]
     });
 
-    // Initialize the map
-    const map = new Map({
-      target: 'map',
-      layers: [baseLayer, vectorLayer],
-      view: view
+    const vectorLayer = new ol.layer.Vector({
+      source: vectorSource
     });
+
+    map.addLayer(vectorLayer);
   </script>
 </body>
 </html>
