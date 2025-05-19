@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>OpenLayers Basic Map</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@6.15.1/ol.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@6.5.0/ol.css">
   <style>
     html, body, #map {
       margin: 0;
@@ -16,21 +16,20 @@
 <body>
   <div id="map"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ol@6.15.1/dist/ol.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ol@6.5.0/dist/ol.js"></script>
   <script>
-    const map = new ol.Map({
-      target: 'map',
-      layers: [
-        new ol.layer.Tile({
-          source: new ol.source.OSM()
-        })
-      ],
-      view: new ol.View({
-        center: ol.proj.fromLonLat([2.2945, 48.8584]), // Eiffel Tower
-        zoom: 15
-      })
+    // Create the map view centered on Eiffel Tower
+    const view = new ol.View({
+      center: ol.proj.fromLonLat([2.2945, 48.8584]), // Eiffel Tower
+      zoom: 15
     });
 
+    // Base map layer using OpenStreetMap
+    const baseLayer = new ol.layer.Tile({
+      source: new ol.source.OSM()
+    });
+
+    // Create a marker at Eiffel Tower
     const marker = new ol.Feature({
       geometry: new ol.geom.Point(ol.proj.fromLonLat([2.2945, 48.8584]))
     });
@@ -43,6 +42,7 @@
       })
     }));
 
+    // Vector source and layer for the marker
     const vectorSource = new ol.source.Vector({
       features: [marker]
     });
@@ -51,7 +51,12 @@
       source: vectorSource
     });
 
-    map.addLayer(vectorLayer);
+    // Initialize the map
+    const map = new ol.Map({
+      target: 'map',
+      layers: [baseLayer, vectorLayer],
+      view: view
+    });
   </script>
 </body>
 </html>
