@@ -2,61 +2,108 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>OpenLayers Basic Map</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@6.5.0/ol.css">
+  <title>OpenLayers vs Leaflet</title>
+
+  <!-- OpenLayers -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@latest/ol.css">
+  <script src="https://cdn.jsdelivr.net/npm/ol@latest/dist/ol.js"></script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <style>
-    html, body, #map {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
+    body { margin: 0; display: flex; height: 100vh; }
+    #olMap, #leafletMap {
+      width: 50%;
+      height: 100vh;
+    }
+    .popup {
+      background: white;
+      padding: 4px;
+      border: 1px solid black;
     }
   </style>
 </head>
 <body>
-  <div id="map"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ol@6.5.0/dist/ol.js"></script>
+  <div id="olMap"></div>
+  <div id="leafletMap"></div>
+
   <script>
-    // Create the map view centered on Eiffel Tower
-    const view = new ol.View({
-      center: ol.proj.fromLonLat([2.2945, 48.8584]), // Eiffel Tower
-      zoom: 15
-    });
+    // === GEOJSON POINT ===
+    const geojsonPoint = {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-70.6506, -33.4372] // Santiago, Chile
+      },
+      "properties": {
+        "name": "Santiago"
+      }
+    };
 
-    // Base map layer using OpenStreetMap
-    const baseLayer = new ol.layer.Tile({
-      source: new ol.source.OSM()
-    });
-
-    // Create a marker at Eiffel Tower
-    const marker = new ol.Feature({
-      geometry: new ol.geom.Point(ol.proj.fromLonLat([2.2945, 48.8584]))
-    });
-
-    marker.setStyle(new ol.style.Style({
-      image: new ol.style.Icon({
-        anchor: [0.5, 1],
-        src: 'https://openlayers.org/en/v4.6.5/examples/data/icon.png',
-        scale: 0.7
+    // === OPENLAYERS MAP ===
+    const olMap = new ol.Map({
+      target: 'olMap',
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        }),
+        new ol.layer.Vector({
+          source: new ol.source.Vector({
+            features: new ol.format.GeoJSON().readFeatures(geojsonPoint, {
+              featureProjection: 'EPSG:3857' // Important for correct projection
+            })
+          }),
+          style: new ol.style.Style({
+            image: new ol.style.Circle({
+              radius: 7,
+              fill: new ol.style.Fill({ color: 'red' }),
+              stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+            })
+          })
+        })
+      ],
+      view: new ol.View({
+        center: ol.proj.fromLonLat([-70.6506, -33.4372]),
+        zoom: 12
       })
-    }));
-
-    // Vector source and layer for the marker
-    const vectorSource = new ol.source.Vector({
-      features: [marker]
     });
 
-    const vectorLayer = new ol.layer.Vector({
-      source: vectorSource
+    // OL Popup
+    olMap.on('click', function (evt) {
+      const feature = olMap.forEachFeatureAtPixel(evt.pixel, function (feature) {
+        return feature;
+      });
+      if (feature) {
+        const coord = evt.coordinate;
+        alert("OpenLayers popup:\n" + feature.get('name'));
+      }
     });
 
-    // Initialize the map
-    const map = new ol.Map({
-      target: 'map',
-      layers: [baseLayer, vectorLayer],
-      view: view
-    });
+    // === LEAFLET MAP ===
+    const leafletMap = L.map('leafletMap').setView([-33.4372, -70.6506], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(leafletMap);
+
+    const leafletGeojson = L.geoJSON(geojsonPoint, {
+      onEachFeature: function (feature, layer) {
+        layer.bindPopup("Leaflet popup:<br>" + feature.properties.name);
+      },
+      pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng, {
+          radius: 7,
+          fillColor: "red",
+          color: "white",
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.8
+        });
+      }
+    }).addTo(leafletMap);
   </script>
 </body>
 </html>
